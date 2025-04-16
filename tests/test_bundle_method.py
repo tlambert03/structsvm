@@ -1,9 +1,8 @@
+import ilpy
 import numpy as np
 import pytest
 
 import structsvm as ssvm
-
-import ilpy
 
 try:
     ilpy.Solver(1, ilpy.VariableType.Continuous, preference=ilpy.Gurobi)
