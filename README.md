@@ -6,3 +6,9 @@
 [![CI](https://github.com/funkelab/structsvm/actions/workflows/ci.yml/badge.svg)](https://github.com/funkelab/structsvm/actions/workflows/ci.yml)
 
 Structured Bundle Method for Risk Minimization.
+
+## Installation
+
+```bash
+pip install structsvm
+```

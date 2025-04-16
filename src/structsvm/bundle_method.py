@@ -1,13 +1,16 @@
-import logging
-import numpy as np
-import ilpy
+from __future__ import annotations
 
-logger = logging.getLogger(__name__)
-ILPY_V02 = ilpy.__version__.split(".")[:2] < ["0", "3"]
+import logging
+from typing import Callable
+
+import ilpy
+import numpy as np
+
+logger = logging.getLogger("structsvm")
 
 
 class BundleMethod:
-    '''Create a new bundle method for the given value and gradient callback.
+    """Create a new bundle method for the given value and gradient callback.
 
     Args:
 
@@ -27,36 +30,32 @@ class BundleMethod:
         eps:
 
            Convergence threshold.
-    '''
+    """
 
     def __init__(
-            self,
-            value_gradient_callback,
-            dims,
-            regularizer_weight,
-            eps):
-
+        self,
+        value_gradient_callback: Callable[[np.ndarray], tuple[float, np.ndarray]],
+        dims: int,
+        regularizer_weight: float,
+        eps: float,
+    ):
         self._value_gradient_callback = value_gradient_callback
         self._dims = dims
         self._lambda = regularizer_weight
         self._eps = eps
 
-        try:
-            self._solver = ilpy.QuadraticSolver(dims + 1, ilpy.VariableType.Continuous)
-        except RuntimeError as e:
-            raise RuntimeError(
-                "Unable to create ilpy.QuadraticSolver. This functionality "
-                "currently requires a valid Gurobi license."
-            ) from e
+        self._solver = ilpy.Solver(dims + 1, ilpy.VariableType.Continuous)
+        self._solver.set_verbose(True)
+
         # one variable for each component of w and for ξ
-        self._objective = ilpy.QuadraticObjective(dims + 1)
+        self._objective = ilpy.Objective(dims + 1)
 
         self._setup_qp()
 
-    def optimize(self, max_iterations=None):
-        '''Find ``w`` that minimizes the function given by
+    def optimize(self, max_iterations: int | None = None) -> np.ndarray:
+        """Find ``w`` that minimizes the function given by
         ``value_gradient_callback``.
-        '''
+        """
 
         # 1. w_0 = 0, t = 0
         # 2. t++
@@ -77,7 +76,6 @@ class BundleMethod:
         t = 0
 
         while max_iterations is None or t < max_iterations:
-
             t += 1
 
             logger.info("----------------- iteration %d", t)
@@ -94,8 +92,8 @@ class BundleMethod:
 
             # update smallest observed value of regularized L
             min_value = min(
-                min_value,
-                L_w_tm1 + 0.5*self._lambda*np.dot(w_tm1, w_tm1))
+                min_value, L_w_tm1 + 0.5 * self._lambda * np.dot(w_tm1, w_tm1)
+            )
 
             logger.debug(" min_i L(w_i) + ½λ|w_i|² is: %f", min_value)
 
@@ -120,28 +118,23 @@ class BundleMethod:
 
             # converged?
             if eps_t <= self._eps:
-
                 if eps_t >= 0:
-
                     logger.info("converged!")
 
                 else:
-
                     logger.warning("ε < 0 -- something went wrong")
-                    logger.warning(
-                        "(if |ε| is very small this might still be fine)")
+                    logger.warning("(if |ε| is very small this might still be fine)")
 
                 break
 
         return w
 
-    def _setup_qp(self):
-
+    def _setup_qp(self) -> None:
         # w* = argmin λ½|w|² + ξ, s.t. <w,a_i> + b_i ≤ ξ ∀i
 
         # regularizer
         for i in range(self._dims):
-            self._objective.set_quadratic_coefficient(i, i, 0.5*self._lambda)
+            self._objective.set_quadratic_coefficient(i, i, 0.5 * self._lambda)
 
         # ξ
         self._objective.set_coefficient(self._dims, 1.0)
@@ -152,16 +145,16 @@ class BundleMethod:
         # set objective (does not change)
         self._solver.set_objective(self._objective)
 
-    def _add_hyperplane(self, a, b):
-        '''Add a hyperplane to the bundle. The hyperplane is parameterized by a
+    def _add_hyperplane(self, a: np.ndarray, b: float) -> None:
+        """Add a hyperplane to the bundle. The hyperplane is parameterized by a
         vector ``a`` and an offset ``b``.
-        '''
+        """
 
         # <w,a> + b ≤  ξ
         #       <=>
         # <w,a> - ξ ≤ -b
 
-        constraint = ilpy.LinearConstraint()
+        constraint = ilpy.Constraint()
 
         for i in range(self._dims):
             constraint.set_coefficient(i, a[i])
@@ -172,10 +165,10 @@ class BundleMethod:
 
         self._solver.add_constraint(constraint)
 
-    def _find_min_lower_bound(self):
-
+    def _find_min_lower_bound(self) -> tuple[np.ndarray, float]:
         # solve the QP
-        solution = self._solver.solve()[0] if ILPY_V02 else self._solver.solve()
+
+        solution = self._solver.solve()
 
         # read the solution
         w = np.array([solution[i] for i in range(self._dims)])
