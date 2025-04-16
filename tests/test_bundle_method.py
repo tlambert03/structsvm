@@ -1,7 +1,7 @@
 import structsvm as ssvm
 
 
-def test_quadratic():
+def test_quadratic() -> None:
     # f(x) = (x - 1)**2
     def value_gradient(x):
         return (x[0] - 1.0) ** 2, 2 * (x - 1)

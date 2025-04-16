@@ -4,7 +4,7 @@ import numpy as np
 import structsvm as ssvm
 
 
-def test_chose_one():
+def test_chose_one() -> None:
     # simple ILP to chose exactly one indiciator variable
 
     num_variables = 10
