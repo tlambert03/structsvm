@@ -1,8 +1,18 @@
 import numpy as np
+import pytest
 
 import structsvm as ssvm
 
+import ilpy
 
+try:
+    ilpy.Solver(1, ilpy.VariableType.Continuous, preference=ilpy.Gurobi)
+    HAVE_GUROBI = True
+except RuntimeError:
+    HAVE_GUROBI = False
+
+
+@pytest.mark.skipif(not HAVE_GUROBI, reason="Currently only works on gurobi")
 def test_quadratic() -> None:
     # f(x) = (x - 1)**2
     def value_gradient(x: np.ndarray) -> tuple[float, np.ndarray]:
