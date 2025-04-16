@@ -90,7 +90,6 @@ class BundleMethod:
 
             # get current value and gradient
             L_w_tm1, a_t = self._value_gradient_callback(w_tm1)
-            breakpoint()
 
             logger.debug("       L(w)              is: %f", L_w_tm1)
             logger.debug("      ∂L(w)/∂            is: %s", a_t)
