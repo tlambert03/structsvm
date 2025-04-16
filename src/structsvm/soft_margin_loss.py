@@ -1,7 +1,15 @@
+from __future__ import annotations
+
 import logging
-import numpy as np
+from typing import TYPE_CHECKING
+
 import ilpy
+import numpy as np
+
 from .hamming_costs import HammingCosts
+
+if TYPE_CHECKING:
+    from .linear_costs import LinearCosts
 
 logger = logging.getLogger("structsvm")
 
@@ -33,7 +41,13 @@ class SoftMarginLoss:
              The cost function Δ(y',y) to use. Defaults to Hamming costs.
     """
 
-    def __init__(self, constraints, features, ground_truth, costs=None):
+    def __init__(
+        self,
+        constraints: ilpy.Constraints,
+        features: np.ndarray,
+        ground_truth: np.ndarray,
+        costs: LinearCosts | None = None,
+    ):
         self._num_variables = ground_truth.size
 
         self._features = features
@@ -58,7 +72,8 @@ class SoftMarginLoss:
         self._objective = ilpy.Objective(self._num_variables)
         self._objective.set_sense(ilpy.Sense.Maximize)
 
-    def value_and_gradient(self, w):
+    def value_and_gradient(self, w: np.ndarray) -> tuple[float, np.ndarray]:
+        """Computes the value and gradient of the soft margin loss."""
         # L(w) = max_y <w,φ(x')y' - φ(x')y>     + Δ(y',y)
         #      = max_y <wφ(x'),y'-y>            + Δ(y',y)
         #      = max_y <wφ(x'),y'> - <wφ(x'),y> + Δ(y',y)

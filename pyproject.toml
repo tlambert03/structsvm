@@ -71,6 +71,20 @@ select = [
     "TC",   # flake8-type-checking
     "TID",  # flake8-tidy-imports
 ]
+ignore = [
+    "RUF001", # ambiguous variable name
+    "RUF003", # ambiguous variable name
+]
+
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*.py" = ["D", "S"]
+
+# https://mypy.readthedocs.io/en/stable/config_file.html
+[tool.mypy]
+files = "src/**/"
+strict = true
+disallow_any_generics = false
+disallow_subclassing_any = false
+show_error_codes = true
+pretty = true

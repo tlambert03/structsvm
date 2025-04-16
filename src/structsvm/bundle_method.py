@@ -1,8 +1,12 @@
-import logging
-import numpy as np
-import ilpy
+from __future__ import annotations
 
-logger = logging.getLogger('structsvm')
+import logging
+from typing import Callable
+
+import ilpy
+import numpy as np
+
+logger = logging.getLogger("structsvm")
 
 
 class BundleMethod:
@@ -28,7 +32,13 @@ class BundleMethod:
            Convergence threshold.
     """
 
-    def __init__(self, value_gradient_callback, dims, regularizer_weight, eps):
+    def __init__(
+        self,
+        value_gradient_callback: Callable[[np.ndarray], tuple[np.ndarray, np.ndarray]],
+        dims: int,
+        regularizer_weight: float,
+        eps: float,
+    ):
         self._value_gradient_callback = value_gradient_callback
         self._dims = dims
         self._lambda = regularizer_weight
@@ -46,7 +56,7 @@ class BundleMethod:
 
         self._setup_qp()
 
-    def optimize(self, max_iterations=None):
+    def optimize(self, max_iterations: int | None = None) -> np.ndarray:
         """Find ``w`` that minimizes the function given by
         ``value_gradient_callback``.
         """
@@ -123,7 +133,7 @@ class BundleMethod:
 
         return w
 
-    def _setup_qp(self):
+    def _setup_qp(self) -> None:
         # w* = argmin λ½|w|² + ξ, s.t. <w,a_i> + b_i ≤ ξ ∀i
 
         # regularizer
@@ -139,7 +149,7 @@ class BundleMethod:
         # set objective (does not change)
         self._solver.set_objective(self._objective)
 
-    def _add_hyperplane(self, a, b):
+    def _add_hyperplane(self, a: np.ndarray, b: float) -> None:
         """Add a hyperplane to the bundle. The hyperplane is parameterized by a
         vector ``a`` and an offset ``b``.
         """
@@ -159,7 +169,7 @@ class BundleMethod:
 
         self._solver.add_constraint(constraint)
 
-    def _find_min_lower_bound(self):
+    def _find_min_lower_bound(self) -> tuple[np.ndarray, float]:
         # solve the QP
         solution = self._solver.solve()
 

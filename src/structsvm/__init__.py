@@ -7,7 +7,7 @@ except PackageNotFoundError:  # pragma: no cover
 
 
 from .bundle_method import BundleMethod
-from .soft_margin_loss import SoftMarginLoss
 from .hamming_costs import HammingCosts
+from .soft_margin_loss import SoftMarginLoss
 
-__all__ = ["BundleMethod", "SoftMarginLoss", "HammingCosts", "__version__"]
+__all__ = ["BundleMethod", "HammingCosts", "SoftMarginLoss", "__version__"]
