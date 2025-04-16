@@ -1,9 +1,11 @@
+import numpy as np
+
 import structsvm as ssvm
 
 
 def test_quadratic() -> None:
     # f(x) = (x - 1)**2
-    def value_gradient(x):
+    def value_gradient(x: np.ndarray) -> tuple[float, np.ndarray]:
         return (x[0] - 1.0) ** 2, 2 * (x - 1)
 
     bundle_method = ssvm.BundleMethod(

@@ -34,7 +34,7 @@ class BundleMethod:
 
     def __init__(
         self,
-        value_gradient_callback: Callable[[np.ndarray], tuple[np.ndarray, np.ndarray]],
+        value_gradient_callback: Callable[[np.ndarray], tuple[float, np.ndarray]],
         dims: int,
         regularizer_weight: float,
         eps: float,
@@ -90,6 +90,7 @@ class BundleMethod:
 
             # get current value and gradient
             L_w_tm1, a_t = self._value_gradient_callback(w_tm1)
+            breakpoint()
 
             logger.debug("       L(w)              is: %f", L_w_tm1)
             logger.debug("      ∂L(w)/∂            is: %s", a_t)
