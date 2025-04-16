@@ -3,11 +3,11 @@ import numpy as np
 import ilpy
 from .hamming_costs import HammingCosts
 
-logger = logging.getLogger(__name__)
-ILPY_V02 = ilpy.__version__.split(".")[:2] < ["0", "3"]
+logger = logging.getLogger("structsvm")
+
 
 class SoftMarginLoss:
-    '''Implements the soft margin loss, i.e.,
+    """Implements the soft margin loss, i.e.,
 
        L(w) = max_y <w,φ(x')y' - φ(x')y> + Δ(y',y)
 
@@ -16,7 +16,7 @@ class SoftMarginLoss:
 
     Args:
 
-        constraints (ilpy.LinearConstraints):
+        constraints (ilpy.Constraints):
 
              Constraints on y.
 
@@ -31,15 +31,9 @@ class SoftMarginLoss:
         costs (class, optional):
 
              The cost function Δ(y',y) to use. Defaults to Hamming costs.
-    '''
+    """
 
-    def __init__(
-            self,
-            constraints,
-            features,
-            ground_truth,
-            costs=None):
-
+    def __init__(self, constraints, features, ground_truth, costs=None):
         self._num_variables = ground_truth.size
 
         self._features = features
@@ -54,27 +48,24 @@ class SoftMarginLoss:
         self._g = self._costs.get_coefficients()
 
         # combined features of the ground truth and current y*
-        self._d = features@ground_truth
+        self._d = features @ ground_truth
 
         # setup solver
-        self._solver = ilpy.LinearSolver(
-            self._num_variables,
-            ilpy.VariableType.Binary)
+        self._solver = ilpy.Solver(self._num_variables, ilpy.VariableType.Binary)
         self._solver.set_constraints(constraints)
 
         # setup objective
-        self._objective = ilpy.LinearObjective(self._num_variables)
+        self._objective = ilpy.Objective(self._num_variables)
         self._objective.set_sense(ilpy.Sense.Maximize)
 
     def value_and_gradient(self, w):
-
         # L(w) = max_y <w,φ(x')y' - φ(x')y>     + Δ(y',y)
         #      = max_y <wφ(x'),y'-y>            + Δ(y',y)
         #      = max_y <wφ(x'),y'> - <wφ(x'),y> + Δ(y',y)
         #
         #   f := wφ(x')
 
-        f = w@self._features
+        f = w @ self._features
 
         logger.debug("wφ(x') = %s", f)
 
@@ -97,7 +88,7 @@ class SoftMarginLoss:
         # solve
         self._solver.set_objective(self._objective)
         # solve the QP
-        solution = self._solver.solve()[0] if ILPY_V02 else self._solver.solve()
+        solution = self._solver.solve()
 
         # read optimal value L(w)
         value = solution.get_value()
@@ -106,7 +97,7 @@ class SoftMarginLoss:
         #          = d       - e
 
         # compute gradient
-        e = self._features@np.array(solution)
+        e = self._features @ np.array(solution)
         gradient = self._d - e
 
         return value, gradient

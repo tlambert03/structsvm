@@ -7,4 +7,3 @@ install-dev:
 .PHONY: tests
 tests:
 	pytest -v --cov=structsvm -s --log-cli-level=INFO structsvm
-	flake8 structsvm
