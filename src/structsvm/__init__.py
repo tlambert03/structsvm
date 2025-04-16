@@ -1,7 +1,7 @@
 from importlib.metadata import PackageNotFoundError, version
 
 try:
-    __version__ = version("ilpy")
+    __version__ = version("structsvm")
 except PackageNotFoundError:  # pragma: no cover
     __version__ = "uninstalled"
 
