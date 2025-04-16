@@ -44,13 +44,9 @@ class BundleMethod:
         self._lambda = regularizer_weight
         self._eps = eps
 
-        try:
-            self._solver = ilpy.Solver(dims + 1, ilpy.VariableType.Continuous)
-        except RuntimeError as e:
-            raise RuntimeError(
-                "Unable to create ilpy.Solver. This functionality "
-                "currently requires a valid Gurobi license."
-            ) from e
+        self._solver = ilpy.Solver(dims + 1, ilpy.VariableType.Continuous)
+        self._solver.set_verbose(True)
+
         # one variable for each component of w and for ξ
         self._objective = ilpy.Objective(dims + 1)
 
@@ -171,6 +167,7 @@ class BundleMethod:
 
     def _find_min_lower_bound(self) -> tuple[np.ndarray, float]:
         # solve the QP
+
         solution = self._solver.solve()
 
         # read the solution
